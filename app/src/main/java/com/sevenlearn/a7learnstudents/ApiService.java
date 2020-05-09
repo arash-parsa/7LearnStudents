@@ -17,6 +17,8 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -30,9 +32,11 @@ public class ApiService {
     private static final String TAG = "ApiService";
     private static  final  String BASE_URL = "http://expertdevelopers.ir/api/v1/";
     private String requestTag;
+    private Gson gson;
 
     public ApiService(Context context,String requestTag){
         this.requestTag =requestTag;
+        this.gson=new Gson();
         if(requestQueue == null) {
 
            /* memory leak = chandin activity dashte bashim k baziya baste beshan vali age context shono pass dade bashim inja dige b khater in ke context negah dari mishe on activity nemitone az hafeze kharej beshe va be memory leak bar mikhorim
@@ -62,20 +66,11 @@ public class ApiService {
             @Override
             public void onResponse(JSONObject response) {
                 Log.i(TAG, "onResponse: "+response);
-                Student student = new Student();
-
-                try {
-                    student.setLastName(response.getString("last_name"));
-                    student.setFirstName(response.getString("first_name"));
-                    student.setId(response.getInt("id"));
-                    student.setScore(response.getInt("score"));
-                    student.setCourse(response.getString("course"));
-                    //به این شکل این نتیجه و ریسپانس بر می گرده به اون اکتیویتی که کالش کرده(AddNewStudentFormActivity)
-                    callback.onSuccess(student);
-
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                //Gson Json to java ....but how it works?
+                //java has refelction
+                //میاد string جیسون رو نگا میکنه تک تک فیلد هاشو میکشه بیرون/دقیقا باید مطابق تک تک کلیدها باید یک فیلد داخل آن کلاس وجود داشته باشد میره داخل آن کلاس سرچ میکنه فیلدی با آن نام وجود دارد یا ن اگر وجود داشت فیلد رو میگیره و دیتا رو داخلش قرار میده
+                Student student = gson.fromJson(response.toString(),Student.class);
+                callback.onSuccess(student);
             }
         }, new Response.ErrorListener() {
             @Override
@@ -97,30 +92,24 @@ public class ApiService {
                     @Override
                     public void onResponse(String response) {
                         //  req.setRetryPolicy(new DefaultRetryPolicy(10000,3,2));
-                        List<Student> students = new ArrayList<>();
-                        try {
-                            JSONArray jsonArray = new JSONArray(response);
-                            for (int i = 0; i < jsonArray.length(); i++) {
-                                JSONObject studentJsonObject = jsonArray.getJSONObject(i);
-                                Student student = new Student();
-                                student.setId(studentJsonObject.getInt("id"));
-                                student.setScore(studentJsonObject.getInt("score"));
-                                student.setCourse(studentJsonObject.getString("course"));
-                                student.setFirstName(studentJsonObject.getString("first_name"));
-                                student.setLastName(studentJsonObject.getString("last_name"));
-                                students.add(student);
 
-                            }
+
+                        //Gson Json to java ....but how it works?
+                        //برای کاتس های جنیرک از جمله این لیست نمی تواند عمل رفلکشن را انجام دهد
+                        // کلاسTypeToken یک کلاس جنریک است که باید extend  کنیم تا تایپش(کلاس جنریک) رو بگیره (لیست student ها رو متوجه بشه)
+                        //{} means extend form TypeToken
+                        List<Student> students = gson.fromJson(response, new TypeToken<List<Student>>(){}.getType());
+                        callback.onSuccess(students);
+                        // tabdil java to json
+                        gson.toJson(students.get(0));
 
 
                             Log.i(TAG, "onResponse: " + students.size());
                             callback.onSuccess(students);
 
 
-                        } catch (JSONException e) {
-                            e.printStackTrace();
 
-                        }
+
                     }
                 }, new Response.ErrorListener() {
             @Override

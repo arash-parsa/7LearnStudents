@@ -3,10 +3,15 @@ package com.sevenlearn.a7learnstudents;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.google.gson.annotations.SerializedName;
+
 public class Student implements Parcelable {
+    //برای یکسان شدن نام فیلدها در اینجا با نام فیلدها در سرور(فقط برای فیلدهای که متفاوتند):
     private int id;
     private int score;
+    @SerializedName("first_name")
     private String firstName;
+    @SerializedName("last_name")
     private String lastName;
     private String course;
 
