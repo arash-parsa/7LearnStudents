@@ -16,15 +16,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Toast;
 
-import com.android.volley.DefaultRetryPolicy;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
+
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 
 import org.json.JSONArray;
@@ -37,6 +29,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 import javax.security.auth.login.LoginException;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -65,9 +63,32 @@ public class MainActivity extends AppCompatActivity {
                 startActivityForResult(new Intent(MainActivity.this, AddNewStudentFormActivity.class), ADD_STUDENT_REQUEST_ID);
             }
         });
+        /*
+//Retrofit easy changes :
+        Retrofit retrofit = new Retrofit.Builder()
+                .addConverterFactory(GsonConverterFactory.create())
+                .baseUrl("http://expertdevelopers.ir/api/v1/")
+                .build();
+        RetrofitApiService retrofitApiService = retrofit.create(RetrofitApiService.class);
+        retrofitApiService.getStudents().enqueue(new Callback<List<Student>>() {
+            @Override
+            public void onResponse(Call<List<Student>> call, Response<List<Student>> response) {
+                recyclerView = findViewById(R.id.rv_student_main);
+                recyclerView.setLayoutManager(new LinearLayoutManager(MainActivity.this, RecyclerView.VERTICAL, false));
+            //    studentAdapter = new StudentAdapter(students); // after retrofit change :
+                    studentAdapter = new StudentAdapter(response.body());
+                recyclerView.setAdapter(studentAdapter);
+            }
 
+            @Override
+            public void onFailure(Call<List<Student>> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "خطای نامشخص", Toast.LENGTH_SHORT).show();
 
-        apiService.getStudents(new ApiService.StudentListCallback() {
+            }
+        });
+
+*/
+       apiService.getStudents(new ApiService.StudentListCallback() {
             @Override
             public void onSuccess(List<Student> students) {
                 recyclerView = findViewById(R.id.rv_student_main);
@@ -77,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onError(VolleyError error) {
+            public void onError(Exception error) {
                 Toast.makeText(MainActivity.this, "خطای نامشخص", Toast.LENGTH_SHORT).show();
             }
         });

@@ -14,13 +14,6 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Toast;
-
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.Volley;
 import com.google.android.material.textfield.TextInputEditText;
 
 import org.json.JSONArray;
@@ -80,7 +73,7 @@ public class AddNewStudentFormActivity extends AppCompatActivity {
                                     }
 
                                     @Override
-                                    public void onError(VolleyError student) {
+                                    public void onError(Exception student) {
                                         Toast.makeText(AddNewStudentFormActivity.this, "خطای نامشخص", Toast.LENGTH_SHORT).show();
                                     }
                                 });

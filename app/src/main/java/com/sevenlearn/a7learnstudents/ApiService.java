@@ -9,15 +9,8 @@ import android.util.Log;
 import androidx.annotation.RequiresApi;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 import org.json.JSONArray;
@@ -27,41 +20,80 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
 public class ApiService {
-    private static RequestQueue requestQueue;
+    //   private static RequestQueue requestQueue;
     private static final String TAG = "ApiService";
-    private static  final  String BASE_URL = "http://expertdevelopers.ir/api/v1/";
-    private String requestTag;
+    private static final String BASE_URL = "http://expertdevelopers.ir/api/v1/";
+    //    private String requestTag;
+    private RetrofitApiService retrofitApiService;
+/*
     private Gson gson;
+*/
 
-    public ApiService(Context context,String requestTag){
-        this.requestTag =requestTag;
-        this.gson=new Gson();
-        if(requestQueue == null) {
 
-           /* memory leak = chandin activity dashte bashim k baziya baste beshan vali age context shono pass dade bashim inja dige b khater in ke context negah dari mishe on activity nemitone az hafeze kharej beshe va be memory leak bar mikhorim
-            chon ApplicationContext dar tole kole code apk shoma zendast */
+
+
+    public ApiService(Context context, String requestTag) {
+       /* this.requestTag =requestTag;
+        this.gson=new Gson();*/
+        /*  if(requestQueue == null) {
+
+         *//* memory leak = chandin activity dashte bashim k baziya baste beshan vali age context shono pass dade bashim inja dige b khater in ke context negah dari mishe on activity nemitone az hafeze kharej beshe va be memory leak bar mikhorim
+            chon ApplicationContext dar tole kole code apk shoma zendast *//*
 
            requestQueue = Volley.newRequestQueue(context.getApplicationContext());
-        }
+        }*/
+
+        Retrofit retrofit = new Retrofit.Builder().
+                addConverterFactory(GsonConverterFactory.create())
+                .baseUrl(BASE_URL)
+                .build();
+
+        retrofitApiService = retrofit.create(RetrofitApiService.class);
+
     }
 
 
-
-    public void saveStudents(String firstName, String lastName, int score, String course, final saveStudentCallback callback){
-        JSONObject saveJsonObject = new JSONObject();
+    public void saveStudents(String firstName, String lastName, int score, String course, final saveStudentCallback callback) {
+       /* JSONObject saveJsonObject = new JSONObject();
         Student student = new Student();
         try {
-            saveJsonObject.put("first_name",firstName);
-            saveJsonObject.put("last_name",lastName);
-            saveJsonObject.put("score",score);
-            saveJsonObject.put("course",course);
+            saveJsonObject.put("first_name", firstName);
+            saveJsonObject.put("last_name", lastName);
+            saveJsonObject.put("score", score);
+            saveJsonObject.put("course", course);
 
         } catch (JSONException e) {
             e.printStackTrace();
-        }
+        }*/
 
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, BASE_URL+"experts/student",
+       //jSON OBJECT from gson package not jason.org
+        JsonObject jsonObject =new JsonObject();
+        jsonObject.addProperty("first_name", firstName);
+        jsonObject.addProperty("last_name", lastName);
+        jsonObject.addProperty("course", course);
+        jsonObject.addProperty("score", score);
+
+        retrofitApiService.saveStudents(jsonObject)
+                .enqueue(new Callback<Student>() {
+            @Override
+            public void onResponse(Call<Student> call, Response<Student> response) {
+                callback.onSuccess(response.body());
+            }
+
+            @Override
+            public void onFailure(Call<Student> call, Throwable t) {
+                callback.onError(new Exception(t));
+            }
+        });
+
+        /*JsonObjectRequest request = new JsonObjectRequest(Request.Method.POST, BASE_URL+"experts/student",
                 saveJsonObject, new Response.Listener<JSONObject>() {
             @Override
             public void onResponse(JSONObject response) {
@@ -80,13 +112,12 @@ public class ApiService {
             }
         });
             request.setTag(requestTag);
-        requestQueue.add(request);
+        requestQueue.add(request);*/
     }
 
 
-
-    public void getStudents(final StudentListCallback callback){
-        StringRequest request = new StringRequest(Request.Method.GET, BASE_URL+"experts/student",
+    public void getStudents(final StudentListCallback callback) {
+      /*  StringRequest request = new StringRequest(Request.Method.GET, BASE_URL+"experts/student",
                 new Response.Listener<String>() {
                     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
                     @Override
@@ -121,27 +152,47 @@ public class ApiService {
 
         request.setTag(requestTag);
         requestQueue.add(request);
+*/
+        retrofitApiService.getStudents()
+                // in ja miyad az hamon method Call k to RetrofitApiService tarif kardim estefade mikone
+                .enqueue(new Callback<List<Student>>() {
+                    @Override
+                    public void onResponse(Call<List<Student>> call, Response<List<Student>> response) {
+                    callback.onSuccess(response.body());
+                    }
+
+                    @Override
+                    public void onFailure(Call<List<Student>> call, Throwable t) {
+                        callback.onError(new Exception(t));
+                    }
+                });
+
+
+
 
     }
 
-    public void cancel(){
-        requestQueue.cancelAll(requestTag);
+
+    public void cancel() {
+        /*  requestQueue.cancelAll(requestTag);*/
     }
 
 
     //chon natije method saveStudents ro nemitonim bargardoinm:
-    public interface saveStudentCallback{
-//onSuccess yek student bar migardone :
+    public interface saveStudentCallback {
+        //onSuccess yek student bar migardone :
         void onSuccess(Student student);
 
 
-        void onError(VolleyError student);
+        /* void onError(VolleyError student);*/
+        void onError(Exception student);
     }
 
-    public interface StudentListCallback{
+    public interface StudentListCallback {
         void onSuccess(List<Student> students);
 
-        void onError(VolleyError error);
+        /*     void onError(VolleyError error);*/
+        void onError(Exception error);
 
     }
 
